@@ -8,7 +8,8 @@
 #include <fstream>
 
 using namespace std;
-namespace fs = std::filesystem;
+// exiv2 uses std::auto_ptr which is deleted since c++17, before which the filesystem module is experimental.
+namespace fs = std::experimental::filesystem;
 
 void MyCopy(const fs::path &from, const fs::path &to)
 {
@@ -27,9 +28,9 @@ void MyCopy(const fs::path &from, const fs::path &to)
 
 void Deidentify(const fs::path &oldPath, const fs::path &newPath)
 {
-    // filesystem impl is so lame for gcc
-    // fs::copy_file(oldPath, newPath, fs::copy_options::overwrite_existing);
-    MyCopy(oldPath, newPath);
+    // gcc implementation has problem to overwrite, provide alternative copy function. msvc is good.
+    fs::copy_file(oldPath, newPath, fs::copy_options::overwrite_existing);
+    // MyCopy(oldPath, newPath);
 
     Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(newPath.string().c_str());
     image->clearMetadata();
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
 
     for (const auto &path : paths)
     {
-        fs::path newPath = path.stem().concat("_deidentified").concat(path.extension().string());
+        fs::path newPath = path.parent_path() / path.stem().concat("_deidentified").concat(path.extension().string());
 
         cout << "Deidentifying " << path << "..." << endl;
         Deidentify(path, newPath);
