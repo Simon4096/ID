@@ -8,8 +8,7 @@
 #include <fstream>
 
 using namespace std;
-// exiv2 uses std::auto_ptr which is deleted since c++17, before which the filesystem module is experimental.
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 void MyCopy(const fs::path &from, const fs::path &to)
 {
